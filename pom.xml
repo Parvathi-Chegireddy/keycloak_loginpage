@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+    ══════════════════════════════════════════════════════════════════
+      SpanTag — Root Aggregator POM
+      Place at: D:\keyclockbf\pom.xml
+
+      Purpose: Allows building ALL 8 services with a single command:
+        mvn clean package -DskipTests          (from D:\keyclockbf\)
+
+      This is a PURE AGGREGATOR — it does NOT change any child pom.
+      Each service still uses spring-boot-starter-parent directly.
+      No modifications to any existing service pom.xml needed.
+
+      Why not a parent pom?
+        Services have different Spring Boot versions (4.0.3 vs 4.0.4),
+        different Java versions (25 vs 26), and different groupIds
+        (com.spantag vs com.pragna). A parent pom would force
+        uniformity which would require changing all child poms.
+        An aggregator pom achieves build convenience with zero
+        changes to existing code.
+    ══════════════════════════════════════════════════════════════════
+    -->
+
+    <groupId>com.spantag</groupId>
+    <artifactId>spantag-parent</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <name>SpanTag Microservices</name>
+    <description>Aggregator POM — builds all SpanTag services</description>
+
+    <!--
+        Module order matters for Maven reactor:
+        Services that others depend on at BUILD TIME come first.
+        (Runtime startup order is handled by start.bat)
+    -->
+    <modules>
+        <module>regularAuthentication</module>
+        <module>userservice</module>
+        <module>oauth2-service</module>
+        <module>profile</module>
+        <module>dashboard</module>
+        <module>order-service</module>
+        <module>payment-service</module>
+        <module>Apigatewayapplication</module>
+    </modules>
+
+    <!--
+        No <dependencies>, <dependencyManagement>, or <build> here.
+        Each child manages its own dependencies independently.
+        This pom only aggregates modules for reactor build.
+    -->
+
+</project>

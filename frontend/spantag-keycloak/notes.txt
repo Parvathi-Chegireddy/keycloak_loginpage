@@ -1,0 +1,98 @@
+Enter password: *****
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 5313
+Server version: 8.0.45 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> use orders_db;
+ERROR 1049 (42000): Unknown database 'orders_db'
+mysql> use order_db;
+Database changed
+mysql> select * from orders;
++----+---------+---------------------+----------------------------+------------------------------------------+--------------+----------+-----------+----------------------------+----------+---------------------+--------------+---------+
+| id | amount  | cancellation_reason | created_at                 | payment_id                               | product_name | quantity | status    | updated_at                 | username | shipping_address_id | total_amount | user_id |
++----+---------+---------------------+----------------------------+------------------------------------------+--------------+----------+-----------+----------------------------+----------+---------------------+--------------+---------+
+|  1 | 4343.00 | NULL                | 2026-04-01 18:33:13.492258 | PAY-42B533FC-C986-4604-90AB-545793A4A89A | lolipop      |        1 | CONFIRMED | 2026-04-01 18:33:20.189933 | lavanya1 | NULL                |         0.00 |         |
+|  2 | 1322.00 | NULL                | 2026-04-01 18:44:12.539372 | PAY-643E625B-CA37-4984-B7B1-CE1A5203544F | laptop       |        1 | CONFIRMED | 2026-04-01 18:44:23.718514 | lavanya1 | NULL                |         0.00 |         |
+|  3 | 7676.00 | NULL                | 2026-04-01 19:06:44.855422 | PAY-06861D52-A62D-4522-803C-99529FEA8382 | bulb         |        2 | CONFIRMED | 2026-04-01 19:06:45.199430 | lavanya1 | NULL                |         0.00 |         |
+|  4 | 4343.00 | NULL                | 2026-04-01 20:03:20.241551 | PAY-771C981B-246A-4D8C-959B-A0A2A4565BE0 | alaa         |        1 | CONFIRMED | 2026-04-01 20:03:23.453153 | lavanya1 | NULL                |         0.00 |         |
+|  5 |  555.00 | NULL                | 2026-04-01 23:47:15.182782 | PAY-EC68AC60-D6FB-45B8-8349-716C20F01258 | ffff         |        1 | CONFIRMED | 2026-04-01 23:47:21.391199 | lavanya1 | NULL                |         0.00 |         |
+|  6 |  323.00 | NULL                | 2026-04-02 00:02:54.621139 | PAY-19CA9EF5-26BA-4D04-B8A7-C7B689048B67 | rw           |        1 | CONFIRMED | 2026-04-02 00:02:55.170978 | lavanya1 | NULL                |         0.00 |         |
+|  7 |  322.00 | NULL                | 2026-04-02 00:07:59.267743 | PAY-11C0A061-E792-496F-964E-1D84AAFAC165 | eee          |       12 | CONFIRMED | 2026-04-02 00:07:59.737506 | lavanya1 | NULL                |         0.00 |         |
+|  8 |  555.00 | NULL                | 2026-04-02 00:23:03.604113 | PAY-7666FB81-651D-4BC5-A4F9-9CC6754C2AB8 | gfd          |        2 | CONFIRMED | 2026-04-02 00:23:04.046958 | lavanya1 | NULL                |         0.00 |         |
+|  9 |  322.00 | NULL                | 2026-04-02 00:29:56.245208 | PAY-70D7AD02-588B-4F01-99D3-AE64E457D0AD | eee          |        1 | CONFIRMED | 2026-04-02 00:29:56.578753 | lavanya1 | NULL                |         0.00 |         |
+| 10 | 3232.00 | NULL                | 2026-04-02 00:49:28.072311 | PAY-7FA2C621-3835-42BD-B65E-986E10DA686C | ewe          |        1 | CONFIRMED | 2026-04-02 00:49:28.910939 | lavanya1 | NULL                |         0.00 |         |
+| 11 |   43.00 | NULL                | 2026-04-02 07:05:02.406025 | PAY-E00C01FD-4F34-42C6-84DD-98737BD79C43 | sds          |        1 | CONFIRMED | 2026-04-02 07:05:06.198861 | lavanya1 | NULL                |         0.00 |         |
+| 12 |    8.00 | NULL                | 2026-04-02 09:11:59.275298 | PAY-47D03840-159D-4311-9F1C-F73BFDB248EA | g            |        1 | CONFIRMED | 2026-04-02 09:12:00.016578 | lavanya1 | NULL                |         0.00 |         |
+| 13 |  333.00 | NULL                | 2026-04-02 09:33:10.592306 | PAY-3411B1D5-FAD6-4D45-B400-83081422D25F | sssss3       |        1 | CONFIRMED | 2026-04-02 09:33:11.547742 | lavanya1 | NULL                |         0.00 |         |
+| 14 | 4343.00 | NULL                | 2026-04-03 13:00:35.300871 | PAY-6B01481B-7897-4BFB-9FB6-B45FB84EC5BC | dd           |        1 | CONFIRMED | 2026-04-03 13:00:42.443672 | lavanya1 | NULL                |         0.00 |         |
+| 15 | 3323.00 | NULL                | 2026-04-03 15:24:49.946688 | PAY-29B8FF9E-E820-4B40-AD3C-EF92E754EB50 | wee          |        1 | CONFIRMED | 2026-04-03 15:24:51.829634 | lavanya1 | NULL                |         0.00 |         |
+| 16 |  888.00 | NULL                | 2026-04-03 16:34:43.943699 | PAY-D3DC15A7-0098-4AB1-903B-8CC7FD97BC73 | mkk          |        1 | CONFIRMED | 2026-04-03 16:34:44.886419 | lavanya1 | NULL                |         0.00 |         |
+| 17 | 3456.00 | NULL                | 2026-04-03 16:54:54.480554 | PAY-EB2FCB8D-5EE9-4C32-B119-2D9A381F77E0 | gfhg         |        1 | CONFIRMED | 2026-04-03 16:54:55.233126 | lavanya1 | NULL                |         0.00 |         |
+| 18 | 4343.00 | NULL                | 2026-04-03 18:09:33.641975 | PAY-CDB13717-4802-4A66-AC26-85B0DE98CA93 | laptopq      |        1 | CONFIRMED | 2026-04-03 18:09:41.001713 | lavanya1 | NULL                |         0.00 |         |
+| 19 | 4343.00 | NULL                | 2026-04-03 18:09:41.394829 | PAY-CB684133-46CD-4C77-BCD4-708614CA4184 | laptopq      |        1 | CONFIRMED | 2026-04-03 18:09:41.506418 | lavanya1 | NULL                |         0.00 |         |
+| 20 | 3232.00 | NULL                | 2026-04-03 23:11:03.640915 | PAY-32911DCC-691E-412F-A455-730CF4D79340 | lap          |        2 | CONFIRMED | 2026-04-03 23:11:09.432829 | lavanya1 | NULL                |         0.00 |         |
+| 21 | 3232.00 | NULL                | 2026-04-03 23:11:09.976225 | PAY-8185EE31-D8CF-4FFD-A3E3-A01A455C9ED6 | lap          |        2 | CONFIRMED | 2026-04-03 23:11:10.109735 | lavanya1 | NULL                |         0.00 |         |
+| 22 | 7878.00 | NULL                | 2026-04-04 14:03:02.248043 | PAY-4ECF01A1-8426-4F64-9917-5282B4F0CAF4 | sdfgf        |        1 | CONFIRMED | 2026-04-04 14:03:04.718072 | lavanya1 | NULL                |         0.00 |         |
+| 23 | 7878.00 | NULL                | 2026-04-04 14:03:05.147862 | PAY-5355B608-FA6C-429C-857A-E12CE7F3E05B | sdfgf        |        1 | CONFIRMED | 2026-04-04 14:03:05.279107 | lavanya1 | NULL                |         0.00 |         |
++----+---------+---------------------+----------------------------+------------------------------------------+--------------+----------+-----------+----------------------------+----------+---------------------+--------------+---------+
+23 rows in set (0.02 sec)
+       use order_db;
+Database changed
+mysql> USE payment_db;
+Database changed
+mysql>
+mysql> -- payments table has extra 'currency' NOT NULL column from old schema.
+mysql> -- Payment.java entity doesn't set currency, so INSERT fails.
+mysql> -- Fix: make it nullable.
+mysql>
+mysql> ALTER TABLE payments
+    ->   MODIFY COLUMN currency VARCHAR(10) NULL DEFAULT NULL;
+Query OK, 0 rows affected (0.38 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql>
+mysql> -- Verify
+mysql> DESCRIBE payments;
++----------------+------------------------------------------------+------+-----+---------+----------------+
+| Field          | Type                                           | Null | Key | Default | Extra          |
++----------------+------------------------------------------------+------+-----+---------+----------------+
+| id             | bigint                                         | NO   | PRI | NULL    | auto_increment |
+| amount         | decimal(10,2)                                  | NO   |     | NULL    |                |
+| created_at     | datetime(6)                                    | NO   |     | NULL    |                |
+| failure_reason | varchar(255)                                   | YES  |     | NULL    |                |
+| order_id       | bigint                                         | NO   |     | NULL    |                |
+| payment_id     | varchar(255)                                   | NO   | UNI | NULL    |                |
+| status         | enum('CANCELLED','FAILED','PENDING','SUCCESS') | NO   |     | NULL    |                |
+| updated_at     | datetime(6)                                    | YES  |     | NULL    |                |
+| username       | varchar(255)                                   | NO   |     | NULL    |                |
+| currency       | varchar(10)                                    | YES  |     | NULL    |                |
+| user_id        | varchar(255)                                   | NO   |     | NULL    |                |
++----------------+------------------------------------------------+------+-----+---------+----------------+
+11 rows in set (0.04 sec)
+
+mysql>
+mysql> SELECT 'payment_db fix complete.' AS done;
++--------------------------+
+| done                     |
++--------------------------+
+| payment_db fix complete. |
++--------------------------+
+1 row in set (0.00 sec)
+
+mysql> USE payment_db;
+Database changed
+mysql> ALTER TABLE payments
+    ->   MODIFY COLUMN currency VARCHAR(10) NULL DEFAULT NULL,
+    ->   MODIFY COLUMN user_id  VARCHAR(255) NULL DEFAULT NULL;
+Query OK, 0 rows affected (0.19 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql>

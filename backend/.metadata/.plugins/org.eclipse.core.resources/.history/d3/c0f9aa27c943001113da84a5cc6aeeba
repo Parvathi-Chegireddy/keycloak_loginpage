@@ -1,0 +1,321 @@
+package com.spantag.order_service;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  OrderService Tests
+// ─────────────────────────────────────────────────────────────────────────────
+@ExtendWith(MockitoExtension.class)
+class OrderServiceTest {
+
+    @Mock private OrderRepository orderRepository;
+    @Mock private SagaOrchestrator sagaOrchestrator;
+
+    @InjectMocks private OrderService orderService;
+
+    private CreateOrderRequest validRequest;
+
+    @BeforeEach
+    void setUp() {
+        validRequest = new CreateOrderRequest();
+        validRequest.setProductName("Widget");
+        validRequest.setQuantity(2);
+        validRequest.setAmount(new BigDecimal("499.00"));
+    }
+
+    // ── createOrder ───────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("createOrder: persists PENDING order then hands off to saga")
+    void createOrder_savesAndCallsSaga() {
+        Order sagaResult = new Order();
+        sagaResult.setStatus(OrderStatus.CONFIRMED);
+
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> {
+            Order o = inv.getArgument(0);
+            o.setId(1L);
+            return o;
+        });
+        when(sagaOrchestrator.executeSaga(any(Order.class))).thenReturn(sagaResult);
+
+        Order result = orderService.createOrder("alice", validRequest);
+
+        assertThat(result.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        verify(orderRepository).save(argThat(o -> o.getStatus() == OrderStatus.PENDING));
+        verify(sagaOrchestrator).executeSaga(any());
+    }
+
+    @Test
+    @DisplayName("createOrder: throws IllegalArgumentException for blank productName")
+    void createOrder_blankProductName_throws() {
+        validRequest.setProductName("  ");
+
+        assertThatThrownBy(() -> orderService.createOrder("alice", validRequest))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Product name is required");
+
+        verifyNoInteractions(orderRepository);
+    }
+
+    @Test
+    @DisplayName("createOrder: throws IllegalArgumentException for null productName")
+    void createOrder_nullProductName_throws() {
+        validRequest.setProductName(null);
+
+        assertThatThrownBy(() -> orderService.createOrder("alice", validRequest))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("createOrder: throws IllegalArgumentException for quantity <= 0")
+    void createOrder_zeroQuantity_throws() {
+        validRequest.setQuantity(0);
+
+        assertThatThrownBy(() -> orderService.createOrder("alice", validRequest))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Quantity must be greater than 0");
+    }
+
+    @Test
+    @DisplayName("createOrder: throws IllegalArgumentException for negative quantity")
+    void createOrder_negativeQuantity_throws() {
+        validRequest.setQuantity(-5);
+
+        assertThatThrownBy(() -> orderService.createOrder("alice", validRequest))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("createOrder: throws IllegalArgumentException for zero amount")
+    void createOrder_zeroAmount_throws() {
+        validRequest.setAmount(BigDecimal.ZERO);
+
+        assertThatThrownBy(() -> orderService.createOrder("alice", validRequest))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Amount must be greater than 0");
+    }
+
+    @Test
+    @DisplayName("createOrder: throws IllegalArgumentException for negative amount")
+    void createOrder_negativeAmount_throws() {
+        validRequest.setAmount(new BigDecimal("-100"));
+
+        assertThatThrownBy(() -> orderService.createOrder("alice", validRequest))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // ── getMyOrders ───────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("getMyOrders: returns list of orders for a username")
+    void getMyOrders_returnsList() {
+        Order o1 = new Order(); o1.setUsername("alice");
+        Order o2 = new Order(); o2.setUsername("alice");
+        when(orderRepository.findByUsername("alice")).thenReturn(List.of(o1, o2));
+
+        List<Order> result = orderService.getMyOrders("alice");
+
+        assertThat(result).hasSize(2);
+    }
+
+    // ── getOrderById ──────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("getOrderById: returns order when found for the user")
+    void getOrderById_found() {
+        Order o = new Order(); o.setId(1L); o.setUsername("alice");
+        when(orderRepository.findByIdAndUsername(1L, "alice")).thenReturn(Optional.of(o));
+
+        Optional<Order> result = orderService.getOrderById(1L, "alice");
+
+        assertThat(result).isPresent();
+    }
+
+    @Test
+    @DisplayName("getOrderById: returns empty when order belongs to another user")
+    void getOrderById_wrongUser_empty() {
+        when(orderRepository.findByIdAndUsername(1L, "bob")).thenReturn(Optional.empty());
+
+        Optional<Order> result = orderService.getOrderById(1L, "bob");
+
+        assertThat(result).isEmpty();
+    }
+
+    // ── getAllOrders ──────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("getAllOrders: returns all orders from repository")
+    void getAllOrders_returnsAll() {
+        when(orderRepository.findAll()).thenReturn(List.of(new Order(), new Order()));
+
+        assertThat(orderService.getAllOrders()).hasSize(2);
+    }
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  OrderController Tests
+// ─────────────────────────────────────────────────────────────────────────────
+@ExtendWith(MockitoExtension.class)
+class OrderControllerTest {
+
+    @Mock private OrderService orderService;
+
+    @InjectMocks private OrderController orderController;
+
+    private final Principal alice = () -> "alice";
+    private CreateOrderRequest validRequest;
+
+    @BeforeEach
+    void setUp() {
+        validRequest = new CreateOrderRequest();
+        validRequest.setProductName("Widget");
+        validRequest.setQuantity(1);
+        validRequest.setAmount(new BigDecimal("199.00"));
+    }
+
+    // ── POST /api/orders ──────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("createOrder: returns 201 CREATED for CONFIRMED order")
+    void createOrder_confirmed_returns201() {
+        Order confirmed = new Order();
+        confirmed.setId(1L);
+        confirmed.setStatus(OrderStatus.CONFIRMED);
+        confirmed.setProductName("Widget");
+        confirmed.setQuantity(1);
+        confirmed.setAmount(new BigDecimal("199.00"));
+        confirmed.setUsername("alice");
+
+        when(orderService.createOrder("alice", validRequest)).thenReturn(confirmed);
+
+        ResponseEntity<OrderResponse> response =
+                orderController.createOrder(alice, validRequest);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody().getStatus()).isEqualTo("CONFIRMED");
+    }
+
+    @Test
+    @DisplayName("createOrder: returns 200 OK for CANCELLED order (saga compensated)")
+    void createOrder_cancelled_returns200() {
+        Order cancelled = new Order();
+        cancelled.setStatus(OrderStatus.CANCELLED);
+        cancelled.setCancellationReason("Insufficient funds");
+        cancelled.setProductName("Widget");
+        cancelled.setQuantity(1);
+        cancelled.setAmount(new BigDecimal("99999.00"));
+        cancelled.setUsername("alice");
+
+        when(orderService.createOrder("alice", validRequest)).thenReturn(cancelled);
+
+        ResponseEntity<OrderResponse> response =
+                orderController.createOrder(alice, validRequest);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().getStatus()).isEqualTo("CANCELLED");
+    }
+
+    @Test
+    @DisplayName("createOrder: returns 400 BAD REQUEST on IllegalArgumentException")
+    void createOrder_invalidInput_returns400() {
+        when(orderService.createOrder("alice", validRequest))
+                .thenThrow(new IllegalArgumentException("Product name is required"));
+
+        ResponseEntity<OrderResponse> response =
+                orderController.createOrder(alice, validRequest);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody().getMessage()).contains("Product name");
+    }
+
+    // ── GET /api/orders ───────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("getMyOrders: returns 200 with list of orders")
+    void getMyOrders_returnsList() {
+        Order o = new Order();
+        o.setId(1L); o.setUsername("alice");
+        o.setProductName("Widget"); o.setQuantity(1);
+        o.setAmount(new BigDecimal("100")); o.setStatus(OrderStatus.CONFIRMED);
+
+        when(orderService.getMyOrders("alice")).thenReturn(List.of(o));
+
+        ResponseEntity<List<OrderResponse>> response = orderController.getMyOrders(alice);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("getMyOrders: returns 200 with empty list")
+    void getMyOrders_empty() {
+        when(orderService.getMyOrders("alice")).thenReturn(List.of());
+
+        ResponseEntity<List<OrderResponse>> response = orderController.getMyOrders(alice);
+
+        assertThat(response.getBody()).isEmpty();
+    }
+
+    // ── GET /api/orders/{id} ──────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("getOrder: returns 200 when order found for user")
+    void getOrder_found() {
+        Order o = new Order();
+        o.setId(1L); o.setUsername("alice");
+        o.setProductName("X"); o.setQuantity(1);
+        o.setAmount(BigDecimal.ONE); o.setStatus(OrderStatus.CONFIRMED);
+
+        when(orderService.getOrderById(1L, "alice")).thenReturn(Optional.of(o));
+
+        ResponseEntity<OrderResponse> response = orderController.getOrder(1L, alice);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    @DisplayName("getOrder: returns 404 when order not found or belongs to other user")
+    void getOrder_notFound() {
+        when(orderService.getOrderById(99L, "alice")).thenReturn(Optional.empty());
+
+        ResponseEntity<OrderResponse> response = orderController.getOrder(99L, alice);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    // ── GET /api/orders/admin/all ─────────────────────────────────────────────
+
+    @Test
+    @DisplayName("getAllOrders: returns all orders for admin")
+    void getAllOrders_returnsAll() {
+        Order o1 = new Order(); o1.setStatus(OrderStatus.CONFIRMED);
+        o1.setProductName("A"); o1.setQuantity(1); o1.setAmount(BigDecimal.ONE); o1.setUsername("u");
+        Order o2 = new Order(); o2.setStatus(OrderStatus.CANCELLED);
+        o2.setProductName("B"); o2.setQuantity(1); o2.setAmount(BigDecimal.ONE); o2.setUsername("v");
+
+        when(orderService.getAllOrders()).thenReturn(List.of(o1, o2));
+
+        ResponseEntity<List<OrderResponse>> response = orderController.getAllOrders();
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).hasSize(2);
+    }
+}

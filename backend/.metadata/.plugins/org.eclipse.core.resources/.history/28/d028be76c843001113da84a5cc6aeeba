@@ -1,0 +1,95 @@
+
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.security.Principal;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@ExtendWith(MockitoExtension.class)
+class DashboardControllerTest {
+
+    @InjectMocks private DashboardController dashboardController;
+
+    private final Principal adminPrincipal = () -> "admin";
+    private final Principal userPrincipal  = () -> "alice";
+
+    // ── GET /api/admin/dashboard ──────────────────────────────────────────────
+
+    @Test
+    @DisplayName("adminDashboard: returns welcome map with username and ADMIN role")
+    void adminDashboard_returnsCorrectPayload() {
+        Map<String, Object> result = dashboardController.adminDashboard(adminPrincipal);
+
+        assertThat(result).containsEntry("message", "Welcome to Admin Dashboard");
+        assertThat(result).containsEntry("username", "admin");
+        assertThat(result).containsEntry("role", "ADMIN");
+        assertThat(result).containsKey("service");
+        assertThat(result).containsKey("timestamp");
+    }
+
+    @Test
+    @DisplayName("adminDashboard: timestamp is a non-empty ISO-formatted string")
+    void adminDashboard_timestampIsPresent() {
+        Map<String, Object> result = dashboardController.adminDashboard(adminPrincipal);
+
+        String timestamp = (String) result.get("timestamp");
+        assertThat(timestamp).isNotBlank();
+        // ISO-8601 local datetime contains 'T'
+        assertThat(timestamp).contains("T");
+    }
+
+    @Test
+    @DisplayName("adminDashboard: service field identifies dashboard-service")
+    void adminDashboard_serviceField() {
+        Map<String, Object> result = dashboardController.adminDashboard(adminPrincipal);
+        assertThat(result.get("service").toString()).contains("dashboard");
+    }
+
+    @Test
+    @DisplayName("adminDashboard: reflects the principal's username correctly")
+    void adminDashboard_principalUsername() {
+        Map<String, Object> result = dashboardController.adminDashboard(() -> "superadmin");
+        assertThat(result).containsEntry("username", "superadmin");
+    }
+
+    // ── GET /api/user/dashboard ───────────────────────────────────────────────
+
+    @Test
+    @DisplayName("userDashboard: returns welcome map with username for regular user")
+    void userDashboard_returnsCorrectPayload() {
+        Map<String, Object> result = dashboardController.userDashboard(userPrincipal);
+
+        assertThat(result).containsEntry("message", "Welcome to User Dashboard");
+        assertThat(result).containsEntry("username", "alice");
+        assertThat(result).containsKey("service");
+        assertThat(result).containsKey("timestamp");
+    }
+
+    @Test
+    @DisplayName("userDashboard: does NOT include role field")
+    void userDashboard_noRoleField() {
+        Map<String, Object> result = dashboardController.userDashboard(userPrincipal);
+        // adminDashboard has role, userDashboard should not
+        assertThat(result).doesNotContainKey("role");
+    }
+
+    @Test
+    @DisplayName("userDashboard: timestamp is a non-empty ISO-formatted string")
+    void userDashboard_timestampIsPresent() {
+        Map<String, Object> result = dashboardController.userDashboard(userPrincipal);
+        assertThat((String) result.get("timestamp")).contains("T");
+    }
+
+    @Test
+    @DisplayName("userDashboard: admin principal can also access user dashboard")
+    void userDashboard_accessibleByAdmin() {
+        Map<String, Object> result = dashboardController.userDashboard(adminPrincipal);
+        assertThat(result).containsEntry("username", "admin");
+    }
+}

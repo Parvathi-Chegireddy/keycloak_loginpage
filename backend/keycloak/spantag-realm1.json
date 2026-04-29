@@ -1,0 +1,137 @@
+{
+  "realm": "spantag",
+  "enabled": true,
+  "displayName": "SpanTag",
+
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+
+  "accessTokenLifespan": 900,
+  "ssoSessionMaxLifespan": 604800,
+  "ssoSessionIdleTimeout": 604800,
+  "offlineSessionMaxLifespan": 604800,
+  "offlineSessionIdleTimeout": 604800,
+
+  "roles": {
+    "realm": [
+      {
+        "name": "user",
+        "description": "Regular user role",
+        "composite": false
+      },
+      {
+        "name": "admin",
+        "description": "Administrator role",
+        "composite": false
+      },
+      {
+        "name": "offline_access",
+        "description": "${role_offline-access}",
+        "composite": false
+      },
+      {
+        "name": "uma_authorization",
+        "description": "${role_uma_authorization}",
+        "composite": false
+      }
+    ]
+  },
+
+  "defaultRoles": ["user", "offline_access", "uma_authorization"],
+
+  "clients": [
+    {
+      "clientId": "spantag-app",
+      "name": "SpanTag Application",
+      "description": "Public client used by the React frontend for login (password grant)",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "http://localhost:5173/*",
+        "http://localhost:1013/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173",
+        "http://localhost:1013"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:5173/*"
+      }
+    },
+    {
+      "clientId": "spantag-admin",
+      "name": "SpanTag Admin Client",
+      "description": "Confidential service-account client used by regularAuthentication to create/manage Keycloak users",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "lqCbO7WqlYWtA2ZeruxpwTiYsrUnBhPm",
+      "directAccessGrantsEnabled": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": [],
+      "webOrigins": []
+    }
+  ],
+
+  "users": [
+    {
+      "username": "service-account-spantag-admin",
+      "enabled": true,
+      "email": "service-account-spantag-admin@placeholder.org",
+      "serviceAccountClientId": "spantag-admin",
+      "clientRoles": {
+        "realm-management": [
+          "realm-admin",
+          "manage-users",
+          "view-users",
+          "query-users",
+          "create-client"
+        ]
+      },
+      "realmRoles": ["uma_authorization"]
+    }
+  ],
+
+  "scopeMappings": [
+    {
+      "client": "spantag-app",
+      "roles": ["user", "admin", "offline_access"]
+    }
+  ],
+
+  "clientScopeMappings": {
+    "account": [
+      {
+        "client": "spantag-app",
+        "roles": ["manage-account", "view-profile"]
+      }
+    ]
+  },
+
+  "browserSecurityHeaders": {
+    "contentSecurityPolicy": "frame-src 'self'; frame-ancestors 'self'; object-src 'none';"
+  },
+
+  "smtpServer": {},
+
+  "eventsEnabled": true,
+  "eventsListeners": ["jboss-logging"],
+  "adminEventsEnabled": false,
+
+  "internationalizationEnabled": false,
+  "supportedLocales": ["en"],
+  "defaultLocale": "en"
+}

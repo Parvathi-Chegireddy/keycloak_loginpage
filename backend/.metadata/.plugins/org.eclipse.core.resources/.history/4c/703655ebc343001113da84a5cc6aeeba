@@ -1,0 +1,42 @@
+spring:
+application:
+name: oauth2-service
+
+security:
+oauth2:
+client:
+registration:
+google:
+client-id: 674418730021-25c5ipqpij7ldeo7aeaag8bv5is2gk85.apps.googleusercontent.com
+client-secret: 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
+scope:
+- email
+- profile
+redirect-uri: "http://localhost:9092/login/oauth2/code/google"
+
+#```
+      github:
+        client-id: Ov23liYr5WDyrCLNzBHK
+        client-secret: c2c25df15490236d82d336e0d46ae79449ec3539
+        scope:
+          - user:email
+          - read:user
+        redirect-uri: "http://localhost:9092/login/oauth2/code/github"
+#```
+
+datasource:
+url: jdbc:postgresql://localhost:5432/oauth2_service
+username: postgres
+password: 12345
+driver-class-name: org.postgresql.Driver
+
+jpa:
+hibernate:
+ddl-auto: update
+properties:
+hibernate:
+format_sql: true
+database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+port: 9092

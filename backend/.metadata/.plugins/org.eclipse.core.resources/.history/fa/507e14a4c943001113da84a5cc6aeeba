@@ -1,0 +1,115 @@
+package com.spantag.order_service;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+//import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  OrderRepository Slice Test
+// ─────────────────────────────────────────────────────────────────────────────
+@DataJpaTest
+class OrderRepositoryTest {
+
+    @Autowired private TestEntityManager em;
+    @Autowired private OrderRepository orderRepository;
+
+    private Order persist(String username, OrderStatus status) {
+        Order o = new Order();
+        o.setUsername(username);
+        o.setProductName("Widget");
+        o.setQuantity(1);
+        o.setAmount(new BigDecimal("100.00"));
+        o.setStatus(status);
+        return em.persistAndFlush(o);
+    }
+
+    // ── findByUsername ────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("findByUsername: returns all orders for a user")
+    void findByUsername_returnsAll() {
+        persist("alice", OrderStatus.CONFIRMED);
+        persist("alice", OrderStatus.CANCELLED);
+        persist("bob",   OrderStatus.CONFIRMED);
+
+        List<Order> result = orderRepository.findByUsername("alice");
+
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(o -> o.getUsername().equals("alice"));
+    }
+
+    @Test
+    @DisplayName("findByUsername: returns empty for unknown user")
+    void findByUsername_empty() {
+        assertThat(orderRepository.findByUsername("ghost")).isEmpty();
+    }
+
+    // ── findByUsernameAndStatus ───────────────────────────────────────────────
+
+    @Test
+    @DisplayName("findByUsernameAndStatus: filters by username and status")
+    void findByUsernameAndStatus_filters() {
+        persist("carol", OrderStatus.CONFIRMED);
+        persist("carol", OrderStatus.CANCELLED);
+        persist("carol", OrderStatus.CONFIRMED);
+
+        List<Order> confirmed =
+                orderRepository.findByUsernameAndStatus("carol", OrderStatus.CONFIRMED);
+
+        assertThat(confirmed).hasSize(2);
+        assertThat(confirmed).allMatch(o -> o.getStatus() == OrderStatus.CONFIRMED);
+    }
+
+    @Test
+    @DisplayName("findByUsernameAndStatus: returns empty when no match")
+    void findByUsernameAndStatus_noMatch() {
+        persist("dave", OrderStatus.CONFIRMED);
+
+        List<Order> result =
+                orderRepository.findByUsernameAndStatus("dave", OrderStatus.CANCELLED);
+
+        assertThat(result).isEmpty();
+    }
+
+    // ── findByIdAndUsername ───────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("findByIdAndUsername: returns order when both id and username match")
+    void findByIdAndUsername_found() {
+        Order saved = persist("eve", OrderStatus.CONFIRMED);
+
+        Optional<Order> result =
+                orderRepository.findByIdAndUsername(saved.getId(), "eve");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getUsername()).isEqualTo("eve");
+    }
+
+    @Test
+    @DisplayName("findByIdAndUsername: returns empty when username does not match")
+    void findByIdAndUsername_wrongUser() {
+        Order saved = persist("frank", OrderStatus.CONFIRMED);
+
+        Optional<Order> result =
+                orderRepository.findByIdAndUsername(saved.getId(), "otheruser");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("findByIdAndUsername: returns empty when id does not exist")
+    void findByIdAndUsername_noId() {
+        assertThat(orderRepository.findByIdAndUsername(9999L, "alice")).isEmpty();
+    }
+}
