@@ -2,9 +2,6 @@ package com.spantag.order_service;
 
 import java.math.BigDecimal;
 
-/**
- * Sent from OrderService → PaymentService during saga step 2.
- */
 public class PaymentRequest {
     private Long orderId;
     private String username;
