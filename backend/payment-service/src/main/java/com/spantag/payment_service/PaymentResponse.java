@@ -9,7 +9,7 @@ public class PaymentResponse {
     private Long orderId;
     private String username;
     private BigDecimal amount;
-    private String status;      // "SUCCESS" or "FAILED" — matches what SagaOrchestrator checks
+    private String status;      
     private String message;
     private LocalDateTime createdAt;
 
