@@ -10,15 +10,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Profile Controller — Keycloak integrated
- *
- * POST /api/profile/token    → still called by auth/oauth2 services;
- *                               now proxies to Keycloak token endpoint
- * POST /api/profile/refresh  → proxies refresh to Keycloak
- * POST /api/profile/logout   → clears cookies
- * GET  /api/profile/validate → introspects token with Keycloak
- */
 @RestController
 @RequestMapping("/api/profile")
 public class ProfileController {
@@ -36,9 +27,6 @@ public class ProfileController {
         this.clientId = clientId;
     }
 
-    // ── POST /api/profile/token ───────────────────────────────────────────
-    // Called by auth-service and oauth2-service after login
-    // Proxies direct grant to Keycloak
     @PostMapping("/token")
     public ResponseEntity<Map<String, Object>> issueToken(
             @RequestBody ProfileRequest req,
@@ -46,7 +34,6 @@ public class ProfileController {
 
         System.out.printf("[PROFILE] Token request for username=%s%n", req.getUsername());
 
-        // If accessToken already present in request (forwarded by oauth2-service), return it
         if (req.getAccessToken() != null && !req.getAccessToken().isBlank()) {
             Map<String, Object> body = new HashMap<>();
             body.put("accessToken",  req.getAccessToken());
@@ -66,7 +53,6 @@ public class ProfileController {
         return ResponseEntity.ok(body);
     }
 
-    // ── POST /api/profile/refresh ─────────────────────────────────────────
     @PostMapping("/refresh")
     public ResponseEntity<Map<String, Object>> refresh(
             HttpServletRequest request,
@@ -108,14 +94,12 @@ public class ProfileController {
         }
     }
 
-    // ── POST /api/profile/logout ──────────────────────────────────────────
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(HttpServletResponse response) {
         clearRefreshTokenCookie(response);
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
 
-    // ── GET /api/profile/validate ─────────────────────────────────────────
     @GetMapping("/validate")
     public ResponseEntity<Map<String, Object>> validate(
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
@@ -123,7 +107,6 @@ public class ProfileController {
             return ResponseEntity.status(401).body(Map.of("error", "Missing Authorization header"));
         }
 
-        // Introspect token with Keycloak
         try {
             String introUrl = "/realms/" + realm + "/protocol/openid-connect/userinfo";
             @SuppressWarnings("unchecked")
@@ -146,7 +129,6 @@ public class ProfileController {
         }
     }
 
-    // ── Cookie helpers ────────────────────────────────────────────────────
     private void setRefreshTokenCookie(HttpServletResponse response, String token) {
         if (token == null) return;
         response.addHeader("Set-Cookie",
