@@ -16,21 +16,6 @@ import reactor.core.publisher.Mono;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-/**
- * KeycloakJwtFilter — reads Authorization header directly, validates JWT,
- * injects X-Auth-* headers in a SINGLE mutate() call.
- *
- * FIX for POST 401: The previous version called exchange.mutate() twice:
- *   once to strip X-Auth headers, once to add new ones.
- *   Spring Cloud Gateway's ServerHttpRequest.mutate() wraps the request in a
- *   decorator each time. For POST requests with a body, the second wrap lost
- *   the reference to the body Flux, so the downstream order-service received
- *   a request with no body and (effectively) no authentication context.
- *
- * FIX: Combine both strip + inject into ONE mutate() call using the headers()
- *   Consumer lambda — atomically removes old headers and sets new ones.
- *   The body is never touched, so POST bodies flow through correctly.
- */
 @Component
 public class KeycloakJwtFilter extends AbstractGatewayFilterFactory<KeycloakJwtFilter.Config> {
 
