@@ -56,12 +56,10 @@ public class KeycloakJwtFilter extends AbstractGatewayFilterFactory<KeycloakJwtF
                         
                         ServerHttpRequest mutated = exchange.getRequest().mutate()
                                 .headers(h -> {
-                                    // Remove any spoofed headers from client
                                     h.remove("X-Auth-Username");
                                     h.remove("X-Auth-Role");
                                     h.remove("X-Auth-Email");
                                     h.remove("X-Auth-Provider");
-                                    // Inject trusted headers from validated JWT
                                     h.set("X-Auth-Username", nvl(username));
                                     h.set("X-Auth-Role",     nvl(role));
                                     h.set("X-Auth-Email",    email);
